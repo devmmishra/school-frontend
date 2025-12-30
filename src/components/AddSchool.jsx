@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 
 export default function AddSchool({ onSchoolAdded }) {
-<<<<<<< HEAD
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -34,20 +33,6 @@ export default function AddSchool({ onSchoolAdded }) {
       setValue('image', file);
       
       // Create preview
-=======
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [imagePreview, setImagePreview] = useState(null);
-
-  const handleImageChange = (e) => {
-    const file = e.target.files;
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setMessage('Image size must be less than 5MB');
-        return;
-      }
->>>>>>> 40958ea (school-project)
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
