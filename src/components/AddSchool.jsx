@@ -3,18 +3,36 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 
 export default function AddSchool({ onSchoolAdded }) {
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const handleImageChange = (e) => {
-    const file = e.target.files;
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setMessage('Image size must be less than 5MB');
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      const file = files[0];
+      
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        setMessage('Please select a valid image file');
+        e.target.value = '';
         return;
       }
+      
+      // Check file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setMessage('Image size must be less than 5MB');
+        e.target.value = '';
+        return;
+      }
+      
+      // Set file for form submission
+      setSelectedFile(file);
+      setValue('image', file);
+      
+      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -51,9 +69,9 @@ export default function AddSchool({ onSchoolAdded }) {
       formData.append('state', data.state);
       formData.append('contact', data.contact);
       formData.append('email_id', data.email_id);
-
-      if (data.image && data.image.length > 0) {
-        formData.append('image', data.image);
+      
+      if (selectedFile) {
+        formData.append('image', selectedFile);
       }
 
       await axios.post(
@@ -69,6 +87,8 @@ export default function AddSchool({ onSchoolAdded }) {
       setMessage('School added successfully!');
       reset();
       setImagePreview(null);
+      setSelectedFile(null);
+      onSchoolAdded && onSchoolAdded();
 
       setTimeout(() => {
         window.location.href = '/view-schools';
@@ -88,8 +108,8 @@ export default function AddSchool({ onSchoolAdded }) {
       {message && (
         <div className={`p-4 rounded-lg mb-6 ${
           message.includes('successfully') 
-            ? 'bg-green-100 text-green-800' 
-            : 'bg-red-100 text-red-800'
+            ? 'bg-green-100 text-green-800 border border-green-200' 
+            : 'bg-red-100 text-red-800 border border-red-200'
         }`}>
           {message}
         </div>
@@ -105,7 +125,7 @@ export default function AddSchool({ onSchoolAdded }) {
             type="text"
             placeholder="Enter school name"
             {...register('name', { required: 'School name is required' })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           {errors.name && <p className="error-message">{errors.name.message}</p>}
         </div>
@@ -119,7 +139,7 @@ export default function AddSchool({ onSchoolAdded }) {
             placeholder="Enter school address"
             rows="3"
             {...register('address', { required: 'Address is required' })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
           {errors.address && <p className="error-message">{errors.address.message}</p>}
         </div>
@@ -134,7 +154,7 @@ export default function AddSchool({ onSchoolAdded }) {
               type="text"
               placeholder="Enter city"
               {...register('city', { required: 'City is required' })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             {errors.city && <p className="error-message">{errors.city.message}</p>}
           </div>
@@ -146,7 +166,7 @@ export default function AddSchool({ onSchoolAdded }) {
               type="text"
               placeholder="Enter state"
               {...register('state', { required: 'State is required' })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             {errors.state && <p className="error-message">{errors.state.message}</p>}
           </div>
@@ -163,7 +183,7 @@ export default function AddSchool({ onSchoolAdded }) {
               placeholder="10 digit mobile"
               maxLength="10"
               {...register('contact', { required: 'Contact is required' })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             {errors.contact && <p className="error-message">{errors.contact.message}</p>}
           </div>
@@ -175,13 +195,13 @@ export default function AddSchool({ onSchoolAdded }) {
               type="email"
               placeholder="school@email.com"
               {...register('email_id', { required: 'Email is required' })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
             {errors.email_id && <p className="error-message">{errors.email_id.message}</p>}
           </div>
         </div>
 
-        {/* Image Upload */}
+        {/* Image Upload - FIXED */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             School Image (Optional)
@@ -189,17 +209,17 @@ export default function AddSchool({ onSchoolAdded }) {
           <input
             type="file"
             accept="image/*"
-            {...register('image')}
-            onChange={(e) => {
-              register('image').onChange(e);
-              handleImageChange(e);
-            }}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+            onChange={handleImageChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
-          <p className="text-xs text-gray-500 mt-1">Max file size: 5MB</p>
+          <p className="text-xs text-gray-500 mt-1">Max file size: 5MB. JPG, PNG supported</p>
           {imagePreview && (
-            <div className="mt-4">
-              <img src={imagePreview} alt="Preview" className="max-h-40 rounded" />
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+              <img 
+                src={imagePreview} 
+                alt="Preview" 
+                className="max-h-40 max-w-full rounded-lg object-cover shadow-md" 
+              />
             </div>
           )}
         </div>
@@ -208,7 +228,7 @@ export default function AddSchool({ onSchoolAdded }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 flex items-center justify-center gap-2"
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all duration-200"
         >
           {loading && <span className="loading"></span>}
           {loading ? 'Adding School...' : 'Add School'}
